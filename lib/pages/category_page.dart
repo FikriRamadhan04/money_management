@@ -27,30 +27,14 @@ class _CategoryPageState extends State<CategoryPage> {
                       color: (isExpense) ? Colors.red : Colors.green,
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  SizedBox(height: 10),
                   TextFormField(
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       border: OutlineInputBorder(),
                       hintText: "Nama",
                     ),
                   ),
-                  const SizedBox(height: 20),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: (isExpense)
-                            ? Colors.red
-                            : Colors.green,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: const Text("Simpan"),
-                    ),
-                  ),
+                  ElevatedButton(onPressed: () {}, child: Text("Simpan")),
                 ],
               ),
             ),

@@ -16,8 +16,18 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       home: MainPage(),
-      theme: ThemeData(primarySwatch: Colors.purple),
+      theme: ThemeData(
+        primarySwatch: Colors.purple,
+        useMaterial3: false,
+
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.purple,
+          foregroundColor: Colors.white,
+          elevation: 4,
+        ),
+      ),
     );
   }
 }
