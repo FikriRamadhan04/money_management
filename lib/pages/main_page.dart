@@ -1,5 +1,6 @@
-import 'package:calendar_appbar/calendar_appbar.dart';
 import 'package:flutter/material.dart';
+
+import 'package:calendar_appbar/calendar_appbar.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:money_management/pages/home_page.dart';
 import 'package:money_management/pages/category_page.dart';
@@ -34,6 +35,7 @@ class _MainPageState extends State<MainPage> {
               lastDate: DateTime.now(),
             )
           : PreferredSize(
+              preferredSize: Size.fromHeight(100),
               child: Container(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
@@ -46,7 +48,6 @@ class _MainPageState extends State<MainPage> {
                   ),
                 ),
               ),
-              preferredSize: Size.fromHeight(100),
             ),
       floatingActionButton: Visibility(
         visible: (currentIndex == 0) ? true : false,
