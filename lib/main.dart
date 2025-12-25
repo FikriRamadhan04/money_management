@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'pages/main_page.dart';
 
-void main() {
-  runApp(MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  runApp(const MyApp());
 }
 
 class MyApp extends StatefulWidget {
@@ -17,9 +19,10 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: MainPage(),
+      home: const MainPage(),
       theme: ThemeData(
         primarySwatch: Colors.purple,
+
         useMaterial3: false,
 
         appBarTheme: const AppBarTheme(

@@ -16,50 +16,53 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // dashboard totdal pendapatan & pengeluaran
+            // Dashboard Pendapatan & Pengeluaran
             Padding(
               padding: const EdgeInsets.all(16),
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: Colors.grey[800],
-                  borderRadius: BorderRadius.circular(16),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Colors.grey[800]!, Colors.grey[900]!],
+                  ),
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 10,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
                 ),
-                // Perbaikan: Bungkus kedua Row ke dalam satu Row utama
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: Column(
                   children: [
-                    // Row Pertama (Sisi Kiri)
                     Row(
                       children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Icon(
-                            Icons.download,
-                            color: Colors.green,
-                          ),
+                        _buildIconBadge(
+                          Icons.arrow_downward,
+                          Colors.greenAccent,
                         ),
-                        const SizedBox(width: 15),
+                        const SizedBox(width: 16),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              "Pendapatan",
+                              "Total Pendapatan",
                               style: GoogleFonts.montserrat(
-                                color: Colors.white,
-                                fontSize: 14,
+                                color: Colors.grey[400],
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
-                            const SizedBox(height: 5),
+                            const SizedBox(height: 4),
                             Text(
-                              "Rp. 750.000.000",
+                              "Rp. 100.000.000",
                               style: GoogleFonts.montserrat(
                                 color: Colors.white,
-                                fontSize: 16,
+                                fontSize: 18,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -68,32 +71,35 @@ class _HomePageState extends State<HomePage> {
                       ],
                     ),
 
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      child: Divider(
+                        color: Colors.white.withOpacity(0.1),
+                        thickness: 1,
+                      ),
+                    ),
+
                     Row(
                       children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Icon(Icons.upload, color: Colors.red),
-                        ),
-                        const SizedBox(width: 15),
+                        _buildIconBadge(Icons.arrow_upward, Colors.redAccent),
+                        const SizedBox(width: 16),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              "Pengeluaran",
+                              "Total Pengeluaran",
                               style: GoogleFonts.montserrat(
-                                color: Colors.white,
-                                fontSize: 14,
+                                color: Colors.grey[400],
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
-                            const SizedBox(height: 5),
+                            const SizedBox(height: 4),
                             Text(
-                              "Rp. 200.000.000",
+                              "Rp. 20.000.000",
                               style: GoogleFonts.montserrat(
                                 color: Colors.white,
-                                fontSize: 16,
+                                fontSize: 18,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -110,7 +116,7 @@ class _HomePageState extends State<HomePage> {
             Padding(
               padding: const EdgeInsets.all(16),
               child: Text(
-                "Transaksi",
+                "Transaksi Terakhir",
                 style: GoogleFonts.montserrat(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -122,21 +128,28 @@ class _HomePageState extends State<HomePage> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Card(
-                elevation: 10,
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 child: ListTile(
-                  trailing: Row(
+                  trailing: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.delete),
+                      Icon(Icons.delete, color: Colors.grey),
                       SizedBox(width: 10),
-                      Icon(Icons.edit),
+                      Icon(Icons.edit, color: Colors.grey),
                     ],
                   ),
-                  title: Text("Rp.10.000.000"),
-                  subtitle: Text("Bayar Apartemen"),
+                  title: const Text(
+                    "Rp. 10.000.000",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: const Text("Bayar Apartemen"),
                   leading: Container(
+                    padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: Colors.red[50],
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(Icons.upload, color: Colors.red),
@@ -144,27 +157,35 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
             ),
+
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Card(
-                elevation: 10,
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 child: ListTile(
-                  trailing: Row(
+                  trailing: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.delete),
+                      Icon(Icons.delete, color: Colors.grey),
                       SizedBox(width: 10),
-                      Icon(Icons.edit),
+                      Icon(Icons.edit, color: Colors.grey),
                     ],
                   ),
-                  title: Text("Rp.30.000.000"),
-                  subtitle: Text("Gaji Bulanan"),
+                  title: const Text(
+                    "Rp. 30.000.000",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: const Text("Gaji Bulanan"),
                   leading: Container(
+                    padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: Colors.green[50],
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(Icons.upload, color: Colors.green),
+                    child: const Icon(Icons.download, color: Colors.green),
                   ),
                 ),
               ),
@@ -172,6 +193,17 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildIconBadge(IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Icon(icon, color: color, size: 24),
     );
   }
 }

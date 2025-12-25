@@ -44,6 +44,17 @@ class $CategoriesTable extends Categories
     type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -57,7 +68,7 @@ class $CategoriesTable extends Categories
     defaultValue: currentDateAndTime,
   );
   @override
-  List<GeneratedColumn> get $columns => [id, name, type, createdAt];
+  List<GeneratedColumn> get $columns => [id, name, type, updatedAt, createdAt];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -89,6 +100,12 @@ class $CategoriesTable extends Categories
     } else if (isInserting) {
       context.missing(_typeMeta);
     }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -116,6 +133,10 @@ class $CategoriesTable extends Categories
         DriftSqlType.int,
         data['${effectivePrefix}type'],
       )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -133,11 +154,13 @@ class Category extends DataClass implements Insertable<Category> {
   final int id;
   final String name;
   final int type;
+  final DateTime? updatedAt;
   final DateTime createdAt;
   const Category({
     required this.id,
     required this.name,
     required this.type,
+    this.updatedAt,
     required this.createdAt,
   });
   @override
@@ -146,6 +169,9 @@ class Category extends DataClass implements Insertable<Category> {
     map['id'] = Variable<int>(id);
     map['name'] = Variable<String>(name);
     map['type'] = Variable<int>(type);
+    if (!nullToAbsent || updatedAt != null) {
+      map['updated_at'] = Variable<DateTime>(updatedAt);
+    }
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
   }
@@ -155,6 +181,9 @@ class Category extends DataClass implements Insertable<Category> {
       id: Value(id),
       name: Value(name),
       type: Value(type),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
       createdAt: Value(createdAt),
     );
   }
@@ -168,6 +197,7 @@ class Category extends DataClass implements Insertable<Category> {
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
       type: serializer.fromJson<int>(json['type']),
+      updatedAt: serializer.fromJson<DateTime?>(json['updatedAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
@@ -178,22 +208,30 @@ class Category extends DataClass implements Insertable<Category> {
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
       'type': serializer.toJson<int>(type),
+      'updatedAt': serializer.toJson<DateTime?>(updatedAt),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
 
-  Category copyWith({int? id, String? name, int? type, DateTime? createdAt}) =>
-      Category(
-        id: id ?? this.id,
-        name: name ?? this.name,
-        type: type ?? this.type,
-        createdAt: createdAt ?? this.createdAt,
-      );
+  Category copyWith({
+    int? id,
+    String? name,
+    int? type,
+    Value<DateTime?> updatedAt = const Value.absent(),
+    DateTime? createdAt,
+  }) => Category(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    type: type ?? this.type,
+    updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
+    createdAt: createdAt ?? this.createdAt,
+  );
   Category copyWithCompanion(CategoriesCompanion data) {
     return Category(
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
       type: data.type.present ? data.type.value : this.type,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -204,13 +242,14 @@ class Category extends DataClass implements Insertable<Category> {
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('type: $type, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, name, type, createdAt);
+  int get hashCode => Object.hash(id, name, type, updatedAt, createdAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -218,6 +257,7 @@ class Category extends DataClass implements Insertable<Category> {
           other.id == this.id &&
           other.name == this.name &&
           other.type == this.type &&
+          other.updatedAt == this.updatedAt &&
           other.createdAt == this.createdAt);
 }
 
@@ -225,17 +265,20 @@ class CategoriesCompanion extends UpdateCompanion<Category> {
   final Value<int> id;
   final Value<String> name;
   final Value<int> type;
+  final Value<DateTime?> updatedAt;
   final Value<DateTime> createdAt;
   const CategoriesCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.type = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
   });
   CategoriesCompanion.insert({
     this.id = const Value.absent(),
     required String name,
     required int type,
+    this.updatedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
   }) : name = Value(name),
        type = Value(type);
@@ -243,12 +286,14 @@ class CategoriesCompanion extends UpdateCompanion<Category> {
     Expression<int>? id,
     Expression<String>? name,
     Expression<int>? type,
+    Expression<DateTime>? updatedAt,
     Expression<DateTime>? createdAt,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (name != null) 'name': name,
       if (type != null) 'type': type,
+      if (updatedAt != null) 'updated_at': updatedAt,
       if (createdAt != null) 'created_at': createdAt,
     });
   }
@@ -257,12 +302,14 @@ class CategoriesCompanion extends UpdateCompanion<Category> {
     Value<int>? id,
     Value<String>? name,
     Value<int>? type,
+    Value<DateTime?>? updatedAt,
     Value<DateTime>? createdAt,
   }) {
     return CategoriesCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
       type: type ?? this.type,
+      updatedAt: updatedAt ?? this.updatedAt,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -279,6 +326,9 @@ class CategoriesCompanion extends UpdateCompanion<Category> {
     if (type.present) {
       map['type'] = Variable<int>(type.value);
     }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -291,6 +341,7 @@ class CategoriesCompanion extends UpdateCompanion<Category> {
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('type: $type, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -718,6 +769,7 @@ typedef $$CategoriesTableCreateCompanionBuilder =
       Value<int> id,
       required String name,
       required int type,
+      Value<DateTime?> updatedAt,
       Value<DateTime> createdAt,
     });
 typedef $$CategoriesTableUpdateCompanionBuilder =
@@ -725,6 +777,7 @@ typedef $$CategoriesTableUpdateCompanionBuilder =
       Value<int> id,
       Value<String> name,
       Value<int> type,
+      Value<DateTime?> updatedAt,
       Value<DateTime> createdAt,
     });
 
@@ -775,6 +828,11 @@ class $$CategoriesTableFilterComposer
 
   ColumnFilters<int> get type => $composableBuilder(
     column: $table.type,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -833,6 +891,11 @@ class $$CategoriesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -856,6 +919,9 @@ class $$CategoriesTableAnnotationComposer
 
   GeneratedColumn<int> get type =>
       $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -917,11 +983,13 @@ class $$CategoriesTableTableManager
                 Value<int> id = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<int> type = const Value.absent(),
+                Value<DateTime?> updatedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
               }) => CategoriesCompanion(
                 id: id,
                 name: name,
                 type: type,
+                updatedAt: updatedAt,
                 createdAt: createdAt,
               ),
           createCompanionCallback:
@@ -929,11 +997,13 @@ class $$CategoriesTableTableManager
                 Value<int> id = const Value.absent(),
                 required String name,
                 required int type,
+                Value<DateTime?> updatedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
               }) => CategoriesCompanion.insert(
                 id: id,
                 name: name,
                 type: type,
+                updatedAt: updatedAt,
                 createdAt: createdAt,
               ),
           withReferenceMapper: (p0) => p0

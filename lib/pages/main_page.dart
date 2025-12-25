@@ -26,7 +26,6 @@ class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // ... kode lainnya tetap sama
       appBar: (currentIndex == 0)
           ? CalendarAppBar(
               accent: Colors.purple,
@@ -37,17 +36,11 @@ class _MainPageState extends State<MainPage> {
               lastDate: DateTime.now(),
             )
           : PreferredSize(
-              preferredSize: const Size.fromHeight(
-                60,
-              ), // Ukuran standar AppBar yang pas
+              preferredSize: const Size.fromHeight(60),
               child: Container(
-                color: Colors.purple, // Memberikan background ungu penuh
-                alignment:
-                    Alignment.bottomLeft, // Mengatur posisi teks di kiri bawah
-                padding: const EdgeInsets.only(
-                  left: 20,
-                  bottom: 15,
-                ), // Jarak teks dari pinggir
+                color: Colors.purple,
+                alignment: Alignment.bottomLeft,
+                padding: const EdgeInsets.only(left: 20, bottom: 15),
                 child: SafeArea(
                   child: Text(
                     'Kategori',
