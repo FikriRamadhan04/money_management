@@ -61,7 +61,7 @@ class _CategoryPageState extends State<CategoryPage> {
               children: [
                 Text(
                   category == null
-                      ? (isExpense ? "Tambah Pengeluaran" : "Tambah Pemasukan")
+                      ? (isExpense ? "Tambah Pengeluaran" : "Tambah Pendapatan")
                       : "Edit Kategori",
                   style: GoogleFonts.montserrat(
                     fontSize: 18,
@@ -136,7 +136,7 @@ class _CategoryPageState extends State<CategoryPage> {
                       ),
                     ),
                     const SizedBox(width: 10),
-                    Text(isExpense ? "Pengeluaran" : "Pemasukan"),
+                    Text(isExpense ? "Pengeluaran" : "Pendapatan"),
                   ],
                 ),
 
