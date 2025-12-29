@@ -1,209 +1,177 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:money_management/models/database.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final DateTime selectedDate;
+
+  const HomePage({super.key, required this.selectedDate});
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
+  final AppDatabase database = AppDatabase();
+
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Dashboard Pendapatan & Pengeluaran
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [Colors.grey[800]!, Colors.grey[900]!],
-                  ),
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      blurRadius: 10,
-                      offset: const Offset(0, 5),
+    return Scaffold(
+      body: StreamBuilder<List<TransactionWithCategory>>(
+        stream: database.getTransactionByDate(widget.selectedDate),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          // Inisialisasi saldo
+          int totalIncome = 100000000;
+          int totalExpense = 20000000;
+
+          if (snapshot.hasData) {
+            final listTransaction = snapshot.data!;
+
+            for (var item in listTransaction) {
+              if (item.category.type == 1) {
+                totalIncome += item.transaction.amount;
+              } else {
+                totalExpense += item.transaction.amount;
+              }
+            }
+
+            return Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[900],
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    Row(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildIconBadge(
-                          Icons.arrow_downward,
-                          Colors.greenAccent,
-                        ),
-                        const SizedBox(width: 16),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        Row(
                           children: [
-                            Text(
-                              "Total Pendapatan",
-                              style: GoogleFonts.montserrat(
-                                color: Colors.grey[400],
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                              ),
+                            const Icon(
+                              Icons.download_for_offline,
+                              color: Colors.green,
+                              size: 30,
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              "Rp. 100.000.000",
-                              style: GoogleFonts.montserrat(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
+                            const SizedBox(width: 15),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Pemasukan",
+                                  style: GoogleFonts.montserrat(
+                                    color: Colors.white70,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                Text(
+                                  "Rp $totalIncome",
+                                  style: GoogleFonts.montserrat(
+                                    color: Colors.green,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 10),
+                          child: Divider(color: Colors.white24, thickness: 1),
+                        ),
+
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.upload_file_rounded,
+                              color: Colors.red,
+                              size: 30,
+                            ),
+                            const SizedBox(width: 15),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Pengeluaran",
+                                  style: GoogleFonts.montserrat(
+                                    color: Colors.white70,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                Text(
+                                  "Rp $totalExpense",
+                                  style: GoogleFonts.montserrat(
+                                    color: Colors.red,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
                       ],
                     ),
+                  ),
+                ),
 
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 20),
-                      child: Divider(
-                        color: Colors.white.withOpacity(0.1),
-                        thickness: 1,
-                      ),
-                    ),
-
-                    Row(
-                      children: [
-                        _buildIconBadge(Icons.arrow_upward, Colors.redAccent),
-                        const SizedBox(width: 16),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Total Pengeluaran",
-                              style: GoogleFonts.montserrat(
-                                color: Colors.grey[400],
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
+                // --- DAFTAR TRANSAKSI ---
+                Expanded(
+                  child: listTransaction.isEmpty
+                      ? Center(
+                          child: Text(
+                            "Belum ada data di database",
+                            style: GoogleFonts.montserrat(),
+                          ),
+                        )
+                      : ListView.builder(
+                          itemCount: listTransaction.length,
+                          itemBuilder: (context, index) {
+                            final item = listTransaction[index];
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
                               ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              "Rp. 20.000.000",
-                              style: GoogleFonts.montserrat(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
+                              child: Card(
+                                child: ListTile(
+                                  leading: Icon(
+                                    item.category.type == 2
+                                        ? Icons.upload_rounded
+                                        : Icons.download_rounded,
+                                    color: item.category.type == 2
+                                        ? Colors.red
+                                        : Colors.green,
+                                  ),
+                                  title: Text(
+                                    "Rp ${item.transaction.amount}",
+                                    style: GoogleFonts.montserrat(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  subtitle: Text(
+                                    "${item.category.name} (${item.transaction.name})",
+                                  ),
+                                ),
                               ),
-                            ),
-                          ],
+                            );
+                          },
                         ),
-                      ],
-                    ),
-                  ],
                 ),
-              ),
-            ),
-
-            // Text Transaksi
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(
-                "Transaksi Terakhir",
-                style: GoogleFonts.montserrat(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-
-            // List transaksi
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Card(
-                elevation: 2,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: ListTile(
-                  trailing: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.delete, color: Colors.grey),
-                      SizedBox(width: 10),
-                      Icon(Icons.edit, color: Colors.grey),
-                    ],
-                  ),
-                  title: const Text(
-                    "Rp. 10.000.000",
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  subtitle: const Text("Bayar Apartemen"),
-                  leading: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.red[50],
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(Icons.upload, color: Colors.red),
-                  ),
-                ),
-              ),
-            ),
-
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Card(
-                elevation: 2,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: ListTile(
-                  trailing: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.delete, color: Colors.grey),
-                      SizedBox(width: 10),
-                      Icon(Icons.edit, color: Colors.grey),
-                    ],
-                  ),
-                  title: const Text(
-                    "Rp. 30.000.000",
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  subtitle: const Text("Gaji Bulanan"),
-                  leading: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.green[50],
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(Icons.download, color: Colors.green),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
+              ],
+            );
+          } else {
+            return const Center(child: Text("Error memuat data"));
+          }
+        },
       ),
-    );
-  }
-
-  Widget _buildIconBadge(IconData icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Icon(icon, color: color, size: 24),
     );
   }
 }

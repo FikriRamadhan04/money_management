@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:money_management/models/database.dart';
+import 'package:drift/drift.dart' as drift;
 
 class TransactionPage extends StatefulWidget {
   const TransactionPage({super.key});
@@ -11,16 +12,10 @@ class TransactionPage extends StatefulWidget {
 }
 
 class _TransactionPageState extends State<TransactionPage> {
+  // Menggunakan instance Singleton dari AppDatabase
   final AppDatabase database = AppDatabase();
   bool isExpense = true;
-  List<String> list = [
-    'Makan dan Jajan',
-    'Transportasi',
-    'Bayar Kuliah',
-    'Nonton Film',
-  ];
 
-  late String dropDownValue = list.first;
   Category? selectedCategory;
 
   // Controllers
@@ -30,12 +25,22 @@ class _TransactionPageState extends State<TransactionPage> {
 
   Future insert(
     int amount,
-
     DateTime date,
     String nameDetail,
     int categoryID,
   ) async {
-    // ada insert ke db
+    DateTime now = DateTime.now();
+    await database
+        .into(database.transactions)
+        .insert(
+          TransactionsCompanion.insert(
+            name: nameDetail,
+            categoryId: categoryID,
+            amount: amount,
+            date: date,
+            createdAt: drift.Value(now),
+          ),
+        );
   }
 
   Future<List<Category>> getAllCategory(int type) async {
@@ -70,7 +75,7 @@ class _TransactionPageState extends State<TransactionPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 1. Switch Toggle
+              // 1. Switch Toggle (Income/Expense)
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Row(
@@ -99,16 +104,11 @@ class _TransactionPageState extends State<TransactionPage> {
                       onChanged: (bool value) {
                         setState(() {
                           isExpense = value;
+                          selectedCategory = null;
                         });
                       },
-                      thumbColor: WidgetStatePropertyAll<Color>(
-                        isExpense ? Colors.red : Colors.green,
-                      ),
-                      trackColor: WidgetStatePropertyAll<Color>(
-                        isExpense
-                            ? Colors.red.withOpacity(0.3)
-                            : Colors.green.shade200,
-                      ),
+                      activeColor: Colors.red,
+                      inactiveThumbColor: Colors.green,
                     ),
                   ],
                 ),
@@ -149,7 +149,6 @@ class _TransactionPageState extends State<TransactionPage> {
                     return const Center(child: CircularProgressIndicator());
                   } else {
                     if (snapshot.hasData && snapshot.data!.isNotEmpty) {
-                      // Set default value if null
                       selectedCategory ??= snapshot.data!.first;
 
                       return Padding(
@@ -159,7 +158,6 @@ class _TransactionPageState extends State<TransactionPage> {
                               ? selectedCategory
                               : snapshot.data!.first,
                           isExpanded: true,
-                          icon: const Icon(Icons.arrow_drop_down),
                           items: snapshot.data!.map((Category item) {
                             return DropdownMenuItem<Category>(
                               value: item,
@@ -174,7 +172,12 @@ class _TransactionPageState extends State<TransactionPage> {
                         ),
                       );
                     } else {
-                      return const Center(child: Text("Data kosong"));
+                      return const Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: Text(
+                          "Kategori belum dibuat. Buat di menu Kategori.",
+                        ),
+                      );
                     }
                   }
                 },
@@ -241,16 +244,33 @@ class _TransactionPageState extends State<TransactionPage> {
                 child: SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {
-                      print(
-                        'Tipe: ${isExpense ? "Pengeluaran" : "Pendapatan"}',
-                      );
-                      print('Nominal: ${amountController.text}');
-                      print('Tanggal: ${dateController.text}');
-                      print('Deskripsi: ${detailController.text}');
-                      print('Kategori ID: ${selectedCategory?.id}');
+                    onPressed: () async {
+                      // Validasi input sebelum simpan
+                      if (amountController.text.isEmpty ||
+                          dateController.text.isEmpty ||
+                          selectedCategory == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              "Harap isi nominal, tanggal, dan kategori!",
+                            ),
+                          ),
+                        );
+                        return;
+                      }
 
-                      Navigator.pop(context);
+                      // Memanggil fungsi insert
+                      await insert(
+                        int.parse(amountController.text),
+                        DateTime.parse(dateController.text),
+                        detailController.text,
+                        selectedCategory!.id,
+                      );
+
+                      // Kembali ke halaman utama
+                      if (context.mounted) {
+                        Navigator.pop(context, true);
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.purple,

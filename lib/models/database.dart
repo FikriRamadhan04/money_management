@@ -3,49 +3,62 @@ import 'package:drift_flutter/drift_flutter.dart';
 
 part 'database.g.dart';
 
-// 1. Tabel Kategori
 class Categories extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get name => text().withLength(min: 1, max: 50)();
-  IntColumn get type => integer()();
+  IntColumn get type => integer()(); // 1 = Pendapatan, 2 = Pengeluaran
   DateTimeColumn get updatedAt => dateTime().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 }
 
-// 2. Tabel Transaksi
 class Transactions extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get name => text().withLength(min: 1, max: 100)();
-  IntColumn get categoryId =>
-      integer().references(Categories, #id)(); // Foreign Key
+  IntColumn get categoryId => integer().references(Categories, #id)();
   IntColumn get amount => integer()();
-  DateTimeColumn get date => dateTime()();
+  DateTimeColumn get date => dateTime()(); // Nama kolom: date
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+class TransactionWithCategory {
+  final Transaction transaction;
+  final Category category;
+  TransactionWithCategory(this.transaction, this.category);
 }
 
 @DriftDatabase(tables: [Categories, Transactions])
 class AppDatabase extends _$AppDatabase {
-  AppDatabase() : super(_openConnection());
+  static final AppDatabase _instance = AppDatabase._internal();
+  factory AppDatabase() => _instance;
+  AppDatabase._internal() : super(_openConnection());
 
   @override
   int get schemaVersion => 1;
 
   // --- CRUD CATEGORY ---
-
   Future<List<Category>> getAllCategory(int type) async {
     return await (select(
       categories,
     )..where((tbl) => tbl.type.equals(type))).get();
   }
 
-  Future<int> updateCategoryRepo(int id, String name) async {
-    return await (update(categories)..where((tbl) => tbl.id.equals(id))).write(
-      CategoriesCompanion(name: Value(name)),
-    );
-  }
+  // --- TRANSACTION ---
+  Stream<List<TransactionWithCategory>> getTransactionByDate(DateTime date) {
+    final startOfDay = DateTime(date.year, date.month, date.day);
+    final endOfDay = DateTime(date.year, date.month, date.day, 23, 59, 59);
 
-  Future<int> deleteCategoryRepo(int id) async {
-    return await (delete(categories)..where((tbl) => tbl.id.equals(id))).go();
+    final query = select(transactions).join([
+      innerJoin(categories, categories.id.equalsExp(transactions.categoryId)),
+    ])..where(transactions.date.isBetweenValues(startOfDay, endOfDay));
+
+    return query.watch().map((rows) {
+      return rows.map((row) {
+        return TransactionWithCategory(
+          row.readTable(transactions),
+          row.readTable(categories),
+        );
+      }).toList();
+    });
   }
 
   static QueryExecutor _openConnection() {
